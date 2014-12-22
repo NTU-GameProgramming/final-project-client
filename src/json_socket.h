@@ -1,13 +1,13 @@
 #pragma once
-#define DEFAULT_BUFLEN 512
+#define DEFAULT_BUFLEN 1024
 #define DEFAULT_PORT "8976"
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <windows.h>
 #include <winsock2.h>
+#include <windows.h>
 #include <ws2tcpip.h>
-#include <string>
+#include <string.h>
 #include <json/json.h>
 
 #pragma comment (lib, "Ws2_32.lib")
@@ -27,15 +27,26 @@ public:
 	void onReceive(void (*cb_on_receive)(Json::Value &));
 	void onError(void (*cb_on_receive)(string &));
 	int beginConnect();
-
-
+	void sendJsonMessage(Json::Value &);
+	string formatJsonString(Json::Value &);
+	void parseData(string &);
+	void receiveData(string &);
+	void JsonSocket::handleData(char const *buf, int bufsize);
 private:
 
 	SOCKET ConnectSocket;
 	string ip, port;
+	string received_data;
 	void (*cb_on_receive)(Json::Value &);
 	void (*cb_on_error)(string &);
 	char *sendbuf;
     char recvbuf[DEFAULT_BUFLEN];
 	int recvsbuflen;
+
+	size_t json_length;
+
+
+	Json::FastWriter json_writer; 
+	Json::Reader json_reader;  
+	Json::Value json_object;
 };
