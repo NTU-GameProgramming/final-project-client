@@ -29,12 +29,12 @@ JsonSocket::~JsonSocket() {
 
 
 // Setting callback function
-void JsonSocket::onReceive(void (*cb_on_receive)(Json::Value &)) {
-	this->cb_on_receive = cb_on_receive;
+void JsonSocket::setReceiveCallback(Callback *cb) {
+	this->cb_on_receive = cb;
 }
 
-void JsonSocket::onError(void (*cb_on_error)(string &)) {
-	this->cb_on_error = cb_on_error;
+void JsonSocket::setErrorCallback(Callback *cb) {
+	this->cb_on_error = cb;
 }
 
 int JsonSocket::beginConnect() {
@@ -78,8 +78,8 @@ int JsonSocket::beginConnect() {
         }
 
 
-		u_long mode = 1;
-		ioctlsocket( ConnectSocket, FIONBIO, &mode);
+		//u_long mode = 1;
+		//ioctlsocket( ConnectSocket, FIONBIO, &mode);
 
         // Connect to server.
         iResult = connect( ConnectSocket, ptr->ai_addr, (int)ptr->ai_addrlen);
@@ -106,7 +106,6 @@ void JsonSocket::sendJsonMessage(Json::Value &json) {
 	int iResult;
 	// Send an initial buffer
     iResult = send( ConnectSocket, formatted_json_string.c_str(), formatted_json_string.length(), 0 );
-	iResult = send( ConnectSocket, formatted_json_string.c_str(), formatted_json_string.length(), 0 );
     if (iResult == SOCKET_ERROR) {
         printf("send failed with error: %d\n", WSAGetLastError());
         closesocket(ConnectSocket);
@@ -120,35 +119,34 @@ void JsonSocket::sendJsonMessage(Json::Value &json) {
 string JsonSocket::formatJsonString(Json::Value &json){
 	string formatted_json_str;
 	string json_str = this->json_writer.write(json);
-	formatted_json_str = std::to_string(static_cast<long long>(json_str.length()-1)) + "#" + json_str;
+	formatted_json_str = std::to_string(static_cast<long long>(json_str.length())) + "#" + json_str;
 
 	return formatted_json_str;
 }
-void JsonSocket::receiveData(string &str) {
+void JsonSocket::receiveData(string &str) { 
+	// Needed to be designed as non-blocking mode.
 	int iResult;
-	do {
-		iResult = recv(ConnectSocket, recvbuf, DEFAULT_BUFLEN, 0);
-		if ( iResult > 0 ) {
-			printf("Bytes received: %d\n", iResult);
-			this->handleData(recvbuf, iResult);
-		} else if ( iResult == 0 ) {
-			printf("Connection closed\n");
-		} else {
-			printf("recv failed with error: %d\n", WSAGetLastError());
-		}
-    } while( iResult > 0 );
+	iResult = recv(ConnectSocket, recvbuf, DEFAULT_BUFLEN, 0);
+	if ( iResult > 0 ) {
+		printf("Bytes received: %d\n", iResult);
+		this->handleData(recvbuf, iResult);
+	} else if ( iResult == 0 ) {
+		printf("iResult equals zero. \n");
+	} else {
+		printf("recv failed with error: %d\n", WSAGetLastError());
+	}
 }
 
 void JsonSocket::handleData(char const *buf, int bufsize) {
 	size_t pos = string::npos;
 	this->received_data.append(buf);
-	cout << "after append: " << this->received_data << endl;
+	//cout << "after append: " << this->received_data << endl;
 	if(this->json_length == 0) {  // data begins
 		if((pos = this->received_data.find("#")) != string::npos) { // if "#" is found
 			this->json_length = stoi(this->received_data.substr(0, pos));
 			this->received_data = this->received_data.substr(pos+1);
 		}
-		cout << "after begin: " << this->received_data << endl;
+	//	cout << "after begin: " << this->received_data << endl;
 	}
 	
 	if(this->json_length != 0) {
@@ -165,8 +163,9 @@ void JsonSocket::handleData(char const *buf, int bufsize) {
 			// Reset
 			this->json_length = 0;
 			this->parseData(partial);
+
 		}
-		cout << "after parsed: " << this->received_data << endl;
+		//cout << "after parsed: " << this->received_data << endl;
 	}
 
 }
@@ -175,5 +174,5 @@ void JsonSocket::parseData(string &raw_data) {
 	this->json_reader.parse(raw_data, this->json_object);
 	//cout << "Parsed Data: " << raw_data;
 	//cout << "Parse Data: " << this->json_writer.write(this->json_object);
-	(*(this->cb_on_receive))(this->json_object);
+	(this->cb_on_receive)->callback(this->json_object);
 }

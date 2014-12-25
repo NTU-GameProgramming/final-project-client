@@ -10,6 +10,8 @@
 #include <string.h>
 #include <json/json.h>
 
+#include "callback.h"
+
 #pragma comment (lib, "Ws2_32.lib")
 #pragma comment (lib, "Mswsock.lib")
 #pragma comment (lib, "AdvApi32.lib")
@@ -24,8 +26,8 @@ public:
 	JsonSocket(string &ip, string &port);
 	~JsonSocket();
 
-	void onReceive(void (*cb_on_receive)(Json::Value &));
-	void onError(void (*cb_on_receive)(string &));
+	void setReceiveCallback(Callback*);
+	void setErrorCallback(Callback*);
 	int beginConnect();
 	void sendJsonMessage(Json::Value &);
 	string formatJsonString(Json::Value &);
@@ -37,8 +39,8 @@ private:
 	SOCKET ConnectSocket;
 	string ip, port;
 	string received_data;
-	void (*cb_on_receive)(Json::Value &);
-	void (*cb_on_error)(string &);
+	Callback *cb_on_receive;
+	Callback *cb_on_error;
 	char *sendbuf;
     char recvbuf[DEFAULT_BUFLEN];
 	int recvsbuflen;
