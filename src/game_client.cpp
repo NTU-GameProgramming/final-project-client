@@ -34,13 +34,11 @@ void GameClient::disconnectServer() {
 	}
 }
 
-void GameClient::connectServerCallback(Json::Value &json_object) {
-
-
-}
-
 void GameClient::callback(Json::Value &json) {
 	Json::FastWriter json_writer;
-	
 	std::cout << json_writer.write(json) << endl;
+}
+
+void GameClient::update() {
+	this->json_socket->receiveData();
 }

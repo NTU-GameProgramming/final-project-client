@@ -32,7 +32,7 @@ public:
 	void sendJsonMessage(Json::Value &);
 	string formatJsonString(Json::Value &);
 	void parseData(string &);
-	void receiveData(string &);
+	void receiveData();
 	void JsonSocket::handleData(char const *buf, int bufsize);
 private:
 

@@ -98,7 +98,9 @@ int JsonSocket::beginConnect() {
         WSACleanup();
         return 1;
     }
-
+	u_long mode = 1;
+	ioctlsocket( ConnectSocket, FIONBIO, &mode);
+	return 0;
 }
 
 void JsonSocket::sendJsonMessage(Json::Value &json) {
@@ -107,6 +109,13 @@ void JsonSocket::sendJsonMessage(Json::Value &json) {
 	// Send an initial buffer
     iResult = send( ConnectSocket, formatted_json_string.c_str(), formatted_json_string.length(), 0 );
     if (iResult == SOCKET_ERROR) {
+		int err_code = WSAGetLastError();
+		switch(err_code) {
+			case WSAEWOULDBLOCK:
+				break;
+			default:
+				break;
+		}
         printf("send failed with error: %d\n", WSAGetLastError());
         closesocket(ConnectSocket);
         WSACleanup();
@@ -123,7 +132,7 @@ string JsonSocket::formatJsonString(Json::Value &json){
 
 	return formatted_json_str;
 }
-void JsonSocket::receiveData(string &str) { 
+void JsonSocket::receiveData() { 
 	// Needed to be designed as non-blocking mode.
 	int iResult;
 	iResult = recv(ConnectSocket, recvbuf, DEFAULT_BUFLEN, 0);
@@ -133,7 +142,15 @@ void JsonSocket::receiveData(string &str) {
 	} else if ( iResult == 0 ) {
 		printf("iResult equals zero. \n");
 	} else {
-		printf("recv failed with error: %d\n", WSAGetLastError());
+		int err_code = WSAGetLastError();
+		switch(err_code) {
+			case WSAEWOULDBLOCK:
+				break;
+			default:
+				printf("send failed with error: %d\n", err_code);
+				break;
+		}
+
 	}
 }
 

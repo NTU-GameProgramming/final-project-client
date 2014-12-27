@@ -25,7 +25,7 @@ public:
 	void connectServer();
 	void pushData(enum SERVER_INFO s_info, enum SERVER_ACTION s_act);
 	void disconnectServer();
-	void connectServerCallback(Json::Value &json_object);
+	void update();
 	void callback(Json::Value &);
 	
 private:
