@@ -1,5 +1,5 @@
 #pragma once
-#define DEFAULT_BUFLEN 1024
+#define DEFAULT_BUFLEN 128
 #define DEFAULT_PORT "8976"
 
 #include <stdio.h>
@@ -33,7 +33,7 @@ public:
 	string formatJsonString(Json::Value &);
 	void parseData(string &);
 	void receiveData();
-	void JsonSocket::handleData(char const *buf, int bufsize);
+	void JsonSocket::handleData(char const *buf, int bufsize, bool is_recursive);
 private:
 
 	SOCKET ConnectSocket;
@@ -41,8 +41,7 @@ private:
 	string received_data;
 	Callback *cb_on_receive;
 	Callback *cb_on_error;
-	char *sendbuf;
-    char recvbuf[DEFAULT_BUFLEN];
+	char recvbuf[DEFAULT_BUFLEN];
 	int recvsbuflen;
 
 	size_t json_length;

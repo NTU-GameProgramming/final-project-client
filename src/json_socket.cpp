@@ -5,7 +5,6 @@ JsonSocket::JsonSocket(string &ip, string &port) {
 	this->ip = ip;
 	this->port = port;
 	this->ConnectSocket = INVALID_SOCKET;
-	this->sendbuf = "";
 	this->received_data = "";
 	this->json_length = 0;
 }
@@ -88,6 +87,7 @@ int JsonSocket::beginConnect() {
             ConnectSocket = INVALID_SOCKET;
             continue;
         }
+
         break;
     }
 
@@ -137,8 +137,8 @@ void JsonSocket::receiveData() {
 	int iResult;
 	iResult = recv(ConnectSocket, recvbuf, DEFAULT_BUFLEN, 0);
 	if ( iResult > 0 ) {
-		printf("Bytes received: %d\n", iResult);
-		this->handleData(recvbuf, iResult);
+		//printf("Bytes received: %d\n", iResult);
+		this->handleData(recvbuf, iResult, false);
 	} else if ( iResult == 0 ) {
 		printf("iResult equals zero. \n");
 	} else {
@@ -147,23 +147,27 @@ void JsonSocket::receiveData() {
 			case WSAEWOULDBLOCK:
 				break;
 			default:
-				printf("send failed with error: %d\n", err_code);
+				cout << "send failed with error: " << err_code << endl;
 				break;
 		}
 
 	}
+	//cout << "iResult = " << iResult << endl;
 }
 
-void JsonSocket::handleData(char const *buf, int bufsize) {
+void JsonSocket::handleData(char const *buf, int datsize, bool is_recursive) {
 	size_t pos = string::npos;
-	this->received_data.append(buf);
+	if(!is_recursive) {
+		//cout << "Buf: " << buf << endl;
+		this->received_data.append(buf, datsize);
+	}
 	//cout << "after append: " << this->received_data << endl;
 	if(this->json_length == 0) {  // data begins
 		if((pos = this->received_data.find("#")) != string::npos) { // if "#" is found
 			this->json_length = stoi(this->received_data.substr(0, pos));
 			this->received_data = this->received_data.substr(pos+1);
 		}
-	//	cout << "after begin: " << this->received_data << endl;
+		//cout << "after begin: " << this->received_data << endl;
 	}
 	
 	if(this->json_length != 0) {
@@ -174,13 +178,14 @@ void JsonSocket::handleData(char const *buf, int bufsize) {
 			this->json_length = 0;
 		} else if(this->received_data.length() >= this->json_length) {
 			string partial = this->received_data.substr(0, this->json_length);
-
+			//cout << "partial: " << partial << endl;
 			// Trim
 			this->received_data = this->received_data.substr(this->json_length);
+			//cout << "after trim: " << this->received_data << endl;
 			// Reset
 			this->json_length = 0;
 			this->parseData(partial);
-
+			this->handleData(NULL, NULL, true);
 		}
 		//cout << "after parsed: " << this->received_data << endl;
 	}
@@ -188,8 +193,9 @@ void JsonSocket::handleData(char const *buf, int bufsize) {
 }
 
 void JsonSocket::parseData(string &raw_data) {
+	//cout << "First Parsed Data: " << raw_data;
 	this->json_reader.parse(raw_data, this->json_object);
-	//cout << "Parsed Data: " << raw_data;
+	//cout << "Second Parsed Data: " << raw_data;
 	//cout << "Parse Data: " << this->json_writer.write(this->json_object);
 	(this->cb_on_receive)->callback(this->json_object);
 }
