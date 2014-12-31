@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <map>
-#include <game_updater.h>
+#include "game_updater.h"
 #include <json/json.h>
 #include "game_tree.h"
 

@@ -1,11 +1,11 @@
-s#include <iostream>
+#include <iostream>
 #include <map>
 #include <FlyWin32.h>
-#include "Character.h"
-#include "CharacterManageSystem.h"
-#include "Camera.h"
-#include "game_client.h"
-#include "game_updater_real.h"
+#include "local/Character.h"
+#include "local/CharacterManageSystem.h"
+#include "local/Camera.h"
+#include "net/game_client.h"
+#include "net/game_updater_real.h"
 
 GmClient game_client;
 GmUpdaterReal game_updater;
