@@ -35,7 +35,7 @@ void GmClient::connectServer() {
 	} else {
 		printf("[GmClient] JsonSocket is still connected. Please disconnect before reconnect.\n");
 	}
-	game_updater->initialize(this->json_socket, &(this->char2game), &(this->game2char), &(this->obj2game), &(this->game2obj));
+	game_updater->initialize(this->json_socket);
 }
 
 void GmClient::disconnectServer() {
@@ -79,6 +79,7 @@ void GmClient::callback(Json::Value &json) {
 			}
 		}
 	} else if(this->status == CONNECTED) {
+		cout << "CONNECTED CUBE" << endl;
 		if(json[0] == "GAME") {
 			if(json[1] == "SYNC_ACK") {
 				cout << "Got SYNC_ACK" << endl;
@@ -90,29 +91,17 @@ void GmClient::callback(Json::Value &json) {
 				game_id = data["GAME_ID"].asInt();
 				jpos = data["POS"];
 				pos[0] = jpos[0].asFloat(); pos[1] = jpos[1].asFloat(); pos[2] = jpos[2].asFloat();
-
-				FnCharacter actor;
-				actor.ID(this->game2char[game_id]);
-				actor.SetPosition(pos);
+				cout << "[GameClient] (" << pos[0] << ", " << pos[1] << ", " << pos[2] << ")" << endl;
+				this->game_updater->updateCharacterPullPosition(game_id, pos);
 			}
 		}
 	}
 
 }
 
-void GmClient::registerCharacter(int game_id, CHARACTERid actor_id) {
-	cout << "Register: " << game_id << " <--> " << actor_id << endl;
-	this->char2game[actor_id] = game_id;
-	this->game2char[game_id] = actor_id;
-}
 
 void GmClient::update() {
 	this->json_socket->receiveData();
-}
-
-
-void GmClient::updateCharacter(CHARACTERid id) {
-	this->game_updater->updateCharacterPush(this->char2game[id]);
 }
 
 void GmClient::sync() {

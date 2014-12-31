@@ -34,7 +34,7 @@ void FyMain(int argc, char **argv) {
 
 		cout << "position: " << it->second->pos[0] << ","<< it->second->pos[1] << ","<< it->second->pos[2]  << endl;
 		actors[cid]->is_main_actor = it->second->is_main_actor;
-		game_client.registerCharacter(it->second->game_id, cid);
+		game_updater.registerCharacter(it->second->game_id, cid);
 		if(it->second->is_main_actor) {
 			main_actor_id = cid;
 		}
@@ -43,7 +43,7 @@ void FyMain(int argc, char **argv) {
 	while(true) {
 		actors[main_actor_id]->pos[1] += 5.0f;
 		Sleep(500);
-		game_client.updateCharacter(main_actor_id);
+		game_updater.updateCharacterPush(main_actor_id);
 		game_client.update();
 
 	}

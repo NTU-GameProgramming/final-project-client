@@ -1,10 +1,9 @@
 #pragma once
 #include "FlyWin32.h"
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <map>
 #include "json_socket.h"
+#include <iostream>
 
 using namespace std;
 
@@ -13,31 +12,31 @@ public:
 	GmUpdater() {};
 	~GmUpdater() {};
 	
-	void initialize(
-		JsonSocket *json_socket,
-		map<CHARACTERid, int> *char2game, 
-		map<int, CHARACTERid> *game2char,
-		map<OBJECTid, int> *obj2game,
-		map<int, OBJECTid> *game2obj) {
-
-			this->json_socket = json_socket;
-			this->char2game = char2game;
-			this->game2char = game2char;
-			this->obj2game = obj2game;
-			this->game2obj = game2obj;
+	void initialize(JsonSocket *json_socket) {
+		this->json_socket = json_socket;
 	};
 
-	virtual void updateCharacterPush(int game_id) = 0;
-	virtual void updateCharacterPull(int game_id) = 0;
+	virtual void updateCharacterPush(CHARACTERid id) = 0;
+	virtual void updateCharacterPullPosition(int game_id, float *pos) = 0;
 	virtual void updateObjectPush(int game_id) = 0;
 	virtual void updateObjectPull(int game_id) = 0;
+
+	virtual void updateCharacterAttackPush(CHARACTERid id) = 0;
+	virtual void updateCharacterAttackPull(int game_id) = 0;
+
+
+	void GmUpdater::registerCharacter(int game_id, CHARACTERid actor_id) {
+		cout << game_id << " <---> " << actor_id << endl;
+		this->char2game[actor_id] = game_id;
+		this->game2char[game_id] = actor_id;
+	}
 
 protected:
 	JsonSocket *json_socket;
 	
-	map<CHARACTERid, int> *char2game;
-	map<int, CHARACTERid> *game2char;
+	map<CHARACTERid, int> char2game;
+	map<int, CHARACTERid> game2char;
 
-	map<OBJECTid, int> *obj2game;
-	map<int, OBJECTid> *game2obj;
+	map<OBJECTid, int> obj2game;
+	map<int, OBJECTid> game2obj;
 };

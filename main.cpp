@@ -123,14 +123,14 @@ void FyMain(int argc, char **argv) {
 			actor.initialize(sceneID, NULL, terrainRoomID, it->second->fdir,  it->second->udir,  it->second->pos);
 			actorID = actor.getCharacterId();
 			chrMgtSystem.addCharacter(actor, true);
-			game_client.registerCharacter(it->second->game_id, actor.getCharacterId());
+			game_updater.registerCharacter(it->second->game_id, actor.getCharacterId());
 		} else {
 			cout << "Not main character" << endl;
 			ememy.setMeshFileName("Donzo2");
 			ememy.setCharacterName("Donzo2");
 			ememy.initialize(sceneID, NULL, terrainRoomID, it->second->fdir,  it->second->udir,  it->second->pos);
 			chrMgtSystem.addCharacter(ememy, false);
-			game_client.registerCharacter(it->second->game_id, ememy.getCharacterId());
+			game_updater.registerCharacter(it->second->game_id, ememy.getCharacterId());
 		}
     }
 	//std::cout << "Character set." << std::endl; system("pause");
@@ -186,7 +186,7 @@ void GameAI(int skip){
    //Cameraª¬ºAªº§ó·s
 	camera.GameAIupdate(skip);
 	//camera.resetCamera();
-	game_client.updateCharacter(actorID);
+	game_updater.updateCharacterPush(actorID);
 	game_client.update();
 }
 

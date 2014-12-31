@@ -21,10 +21,14 @@ public:
 	GmUpdaterPseudo(map<CHARACTERid, GmCharacter *> *id2char);
 	~GmUpdaterPseudo();
 	
-	void updateCharacterPush(int game_id);
-	void updateCharacterPull(int game_id);
+	void updateCharacterPush(CHARACTERid game_id);
+	void updateCharacterPullPosition(int game_id, float *pos);
 	void updateObjectPush(int game_id);
 	void updateObjectPull(int game_id);
+
+	void updateCharacterAttackPush(CHARACTERid id);
+	void updateCharacterAttackPull(int game_id);
+
 
 	void update(enum EVENT, Json::Value &);
 private:

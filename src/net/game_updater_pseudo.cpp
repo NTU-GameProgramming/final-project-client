@@ -8,22 +8,19 @@ GmUpdaterPseudo::GmUpdaterPseudo (map<CHARACTERid, GmCharacter *> *id2char) : Gm
 GmUpdaterPseudo::~GmUpdaterPseudo() {
 };
 
-void GmUpdaterPseudo::updateCharacterPush(int game_id){
-
-	FnCharacter actor;
-	CHARACTERid id = (*(this->game2char))[game_id];
-	cout << "id: " << id << endl;
+void GmUpdaterPseudo::updateCharacterPush(CHARACTERid id){
 	float *pos = (*(this->id2char))[id]->pos;
 	Json::Value data;
 	Json::Value jpos;
 	jpos[0] = pos[0]; jpos[1] = pos[1]; jpos[2] = pos[2];
-	data["GAME_ID"] = game_id;
+	data["GAME_ID"] = this->char2game[id];
 	data["POS"] = jpos;
 	this->update(EVENT::UPDATE_CHARACTER, data);
 };
 
-void GmUpdaterPseudo::updateCharacterPull(int game_id){
-
+void GmUpdaterPseudo::updateCharacterPullPosition(int game_id, float *pos){
+	GmCharacter *gc = (*(this->id2char))[this->game2char[game_id]];
+	memcpy(gc->pos, pos, 3 * sizeof(float));
 };
 void GmUpdaterPseudo::updateObjectPush(int game_id){
 };
