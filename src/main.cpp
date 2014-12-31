@@ -1,13 +1,14 @@
-#include <iostream>
+s#include <iostream>
 #include <map>
 #include <FlyWin32.h>
 #include "Character.h"
 #include "CharacterManageSystem.h"
 #include "Camera.h"
 #include "game_client.h"
-#include <system_error>
+#include "game_updater_real.h"
 
 GmClient game_client;
+GmUpdaterReal game_updater;
 
 VIEWPORTid viewportID;	//major viewe port
 SCENEid sceneID;	//3d scene
@@ -58,7 +59,7 @@ void setCamera();
 void FyMain(int argc, char **argv) {
 	AllocConsole();
 	freopen("CONOUT$", "w", stdout);
-	game_client.initialize("127.0.0.1", "8976");
+	game_client.initialize("127.0.0.1", "8976", &game_updater);
 	game_client.connectServer();
 	
 
@@ -119,15 +120,17 @@ void FyMain(int argc, char **argv) {
 			cout << "main character" << endl;
 			actor.setMeshFileName("Lyubu2");
 			actor.setCharacterName("Lyubu2");
-			actor.initialize(sceneID, NULL, terrainRoomID);
+			actor.initialize(sceneID, NULL, terrainRoomID, it->second->fdir,  it->second->udir,  it->second->pos);
 			actorID = actor.getCharacterId();
 			chrMgtSystem.addCharacter(actor, true);
+			game_client.registerCharacter(it->second->game_id, actor.getCharacterId());
 		} else {
 			cout << "Not main character" << endl;
 			ememy.setMeshFileName("Donzo2");
 			ememy.setCharacterName("Donzo2");
 			ememy.initialize(sceneID, NULL, terrainRoomID, it->second->fdir,  it->second->udir,  it->second->pos);
 			chrMgtSystem.addCharacter(ememy, false);
+			game_client.registerCharacter(it->second->game_id, ememy.getCharacterId());
 		}
     }
 	//std::cout << "Character set." << std::endl; system("pause");
@@ -183,6 +186,7 @@ void GameAI(int skip){
    //Cameraª¬ºAªº§ó·s
 	camera.GameAIupdate(skip);
 	//camera.resetCamera();
+	game_client.updateCharacter(actorID);
 	game_client.update();
 }
 
