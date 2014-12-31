@@ -64,21 +64,38 @@ int JsonSocket::beginConnect() {
         return 1;
     }
 
+
     // Attempt to connect to an address until one succeeds
     for(ptr=result; ptr != NULL ;ptr=ptr->ai_next) {
 
         // Create a SOCKET for connecting to server
-        ConnectSocket = socket(ptr->ai_family, ptr->ai_socktype, 
-            ptr->ai_protocol);
+        ConnectSocket = socket(ptr->ai_family, ptr->ai_socktype, ptr->ai_protocol);
         if (ConnectSocket == INVALID_SOCKET) {
             printf("socket failed with error: %ld\n", WSAGetLastError());
             WSACleanup();
             return 1;
-        }
-
-
+        }  else { // Check port
+			srand(time(NULL));
+			for(int port = 2000 + rand() % 100;; ++port) {
+				cout << "Check port: " << port << endl;
+				sockaddr_in localAddr;
+				localAddr.sin_family = AF_INET;
+				localAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
+				localAddr.sin_port = htons(port);
+				if(bind(ConnectSocket,(SOCKADDR *) &localAddr, sizeof(localAddr)) == SOCKET_ERROR) {
+					cout << "The port is already in use: " << port << endl;
+					system("pause");
+				} else {
+					cout << "The port is valid: " << port << endl;
+					system("pause");
+					break;
+				}
+			}
+		}
 		//u_long mode = 1;
 		//ioctlsocket( ConnectSocket, FIONBIO, &mode);
+
+
 
         // Connect to server.
         iResult = connect( ConnectSocket, ptr->ai_addr, (int)ptr->ai_addrlen);
@@ -148,9 +165,10 @@ void JsonSocket::receiveData() {
 				break;
 			default:
 				cout << "send failed with error: " << err_code << endl;
+				closesocket(ConnectSocket);
 				break;
 		}
-
+		
 	}
 	//cout << "iResult = " << iResult << endl;
 }
