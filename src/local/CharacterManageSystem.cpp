@@ -1,8 +1,8 @@
 #include "CharacterManageSystem.h"
 
 
-CharacterManageSystem::CharacterManageSystem(void)
-	:m_localPlayerId(NULL) {
+CharacterManageSystem::CharacterManageSystem(GmUpdater *game_updater) :m_localPlayerId(NULL) {
+	this->game_updater = game_updater;
 }
 
 
@@ -20,7 +20,7 @@ bool CharacterManageSystem::addCharacter(Character &character, bool isLocalPlaye
 	m_mapCharacterId2NewState.insert(std::pair<CHARACTERid, MotionState>(characterId, MotionState::IDLE));	
 	m_mapStrName2CharacterId.insert(std::pair<std::string, CHARACTERid>(character.getCharacterName(), characterId));
 	std::cout << "characterID:" << characterId << std::endl;
-	if(isLocalPlayer){	
+	if(isLocalPlayer) {
 		m_localPlayerId = characterId;
 		std::cout << "localPlayerID:" << characterId << std::endl;
 		m_FightSystem.initialize(this,&m_mapCharacterId2Character);
@@ -29,6 +29,8 @@ bool CharacterManageSystem::addCharacter(Character &character, bool isLocalPlaye
 }
 
 void CharacterManageSystem::updateCharacterInputs(){
+
+	MotionState old_state = m_mapCharacterId2NewState[m_localPlayerId]; // old state
 	//for local player
    	int newState = 0;
 	if(FyCheckHotKeyStatus(FY_UP)){
@@ -48,20 +50,29 @@ void CharacterManageSystem::updateCharacterInputs(){
 		//std::cout<<"right key\n";
 	}
 	if(FyCheckHotKeyStatus(FY_F)){
-		newState = ATTACK;			//player can not move while attacking
+		newState = ATTACK;			//player can not move while attacking, so use "=" instead of "|"
 		//std::cout<<"attak key\n";
 	}
 
-	m_mapCharacterId2NewState[m_localPlayerId] = (MotionState)newState;
+	m_mapCharacterId2NewState[m_localPlayerId] = static_cast<MotionState>(newState);
+
+	// If state is changed, send message over net to inform others.
+	if(old_state != static_cast<MotionState>(newState)) {
+		//this->game_updater->
+	}
+
 
 	//update other charcter's input state
 	//m_mapCharacterId2NewState[m_mapStrName2CharacterId["Donzo2"]] = MotionState::IDLE;
 }
 
 void CharacterManageSystem::update(int skip){
+
+	// Need to modified to update EVERY character
+
 	updateCharacterInputs();
 
-	//update date character's animation and motion
+	//update character's animation and motion
 	{
 		std::map<CHARACTERid, Character*>::iterator chrIter = m_mapCharacterId2Character.begin();
 		for(; chrIter != m_mapCharacterId2Character.end(); ++chrIter){

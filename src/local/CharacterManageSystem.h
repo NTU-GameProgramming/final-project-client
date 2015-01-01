@@ -3,21 +3,21 @@
 #include "Character.h"
 #include <string>
 #include "FightSystem.h"
+#include "net/game_updater.h"
+
 class CharacterManageSystem
 {
 public:
-	CharacterManageSystem(void);
+	CharacterManageSystem(GmUpdater *game_updater);
 	
 	~CharacterManageSystem(void);
 
 	void update(int skip);
 
 	bool addCharacter(Character &character, bool isLocalPlayer = false);
-
 	void removeCharacter(CHARACTERid characterId);
 
 	void gotAttacked(CHARACTERid characterId,float damage);
-
 	int getCharacterblood(CHARACTERid characterId);
 
 	CHARACTERid getActorID();
@@ -34,5 +34,6 @@ private:
 	std::map<std::string, CHARACTERid> m_mapStrName2CharacterId; 
 	FightSystem m_FightSystem;
 	CHARACTERid m_localPlayerId;
+	GmUpdater *game_updater;
 };
 

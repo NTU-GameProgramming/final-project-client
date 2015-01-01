@@ -1,9 +1,12 @@
 #pragma once
 #include "FlyWin32.h"
-#include <string.h>
+#include <string>
+#include <iostream>
 #include <map>
 #include "json_socket.h"
-#include <iostream>
+
+#include 
+
 
 using namespace std;
 
@@ -24,6 +27,8 @@ public:
 	virtual void updateCharacterAttackPush(CHARACTERid id) = 0;
 	virtual void updateCharacterAttackPull(int game_id) = 0;
 
+	virtual void updateCharacterMotionState(CHARACTERid id) = 0;
+	virtual void updateCharacterMotionState(int game_id) = 0;
 
 	void GmUpdater::registerCharacter(int game_id, CHARACTERid actor_id) {
 		cout << game_id << " <---> " << actor_id << endl;
