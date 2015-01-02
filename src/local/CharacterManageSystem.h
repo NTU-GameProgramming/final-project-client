@@ -1,15 +1,14 @@
 #pragma once
 
-#include "Character.h"
 #include <string>
+#include "Character.h"
 #include "FightSystem.h"
-#include "net/game_updater.h"
+#include "net/game_updater_real.h"
 
 class CharacterManageSystem
 {
 public:
-	CharacterManageSystem(GmUpdater *game_updater);
-	
+	CharacterManageSystem(GmUpdaterReal *game_updater);
 	~CharacterManageSystem(void);
 
 	void update(int skip);
@@ -34,6 +33,6 @@ private:
 	std::map<std::string, CHARACTERid> m_mapStrName2CharacterId; 
 	FightSystem m_FightSystem;
 	CHARACTERid m_localPlayerId;
-	GmUpdater *game_updater;
+	GmUpdaterReal *game_updater;
 };
 

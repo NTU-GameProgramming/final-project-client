@@ -21,7 +21,7 @@ public:
 	GmUpdaterPseudo(map<CHARACTERid, GmCharacter *> *id2char);
 	~GmUpdaterPseudo();
 	
-	void updateCharacterPush(CHARACTERid game_id);
+	void updateCharacterPushPosition(CHARACTERid game_id);
 	void updateCharacterPullPosition(int game_id, float *pos);
 	void updateObjectPush(int game_id);
 	void updateObjectPull(int game_id);
@@ -29,7 +29,9 @@ public:
 	void updateCharacterAttackPush(CHARACTERid id);
 	void updateCharacterAttackPull(int game_id);
 
-
+	void updateCharacterMotionStatePush(CHARACTERid id, MotionState ms);
+	void updateCharacterMotionStatePull(int game_id, MotionState ms);
+	
 	void update(enum EVENT, Json::Value &);
 private:
 	map<CHARACTERid, GmCharacter *> *id2char;

@@ -84,10 +84,10 @@ int JsonSocket::beginConnect() {
 				localAddr.sin_port = htons(port);
 				if(bind(ConnectSocket,(SOCKADDR *) &localAddr, sizeof(localAddr)) == SOCKET_ERROR) {
 					cout << "The port is already in use: " << port << endl;
-					system("pause");
+					//system("pause");
 				} else {
 					cout << "The port is valid: " << port << endl;
-					system("pause");
+					//system("pause");
 					break;
 				}
 			}

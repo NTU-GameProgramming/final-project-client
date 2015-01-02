@@ -7,6 +7,12 @@
 #include "net/game_client.h"
 #include "net/game_updater_real.h"
 
+#define window_w 1024
+#define window_h 768
+#define sight_w 83
+#define sight_h 66
+
+
 GmClient game_client;
 GmUpdaterReal game_updater;
 
@@ -16,13 +22,18 @@ OBJECTid cameraID, cameraBaseID, terrainID, lightID;
 CHARACTERid actorID;
 ACTIONid idleID, runID, curPoseID;
 
+OBJECTid spID0 = FAILED_ID;
+
 ROOMid terrainRoomID = FAILED_ID;
 TEXTid textID = FAILED_ID;
 TEXTid textCharID = FAILED_ID;
+TEXTid textHP_vID = FAILED_ID;
+TEXTid textInfo_vID = FAILED_ID;
 Camera camera;
 
-CharacterManageSystem chrMgtSystem;
+SCENEid sID2;                // the 2D scene
 
+CharacterManageSystem chrMgtSystem(&game_updater);
 
 BOOL4 DIR_KEYDOWN[4] = {FALSE, FALSE, FALSE, FALSE};
 BOOL4 first_switch_action = FALSE;
@@ -30,8 +41,6 @@ BOOL4 first_switch_action = FALSE;
 char dbg_msgS[256];
 
 //global value
-
-
 int frame = 0;
 
 int oldX, oldY, oldXM, oldYM, oldXMM, oldYMM;
@@ -59,7 +68,15 @@ void setCamera();
 void FyMain(int argc, char **argv) {
 	AllocConsole();
 	freopen("CONOUT$", "w", stdout);
-	game_client.initialize("127.0.0.1", "8976", &game_updater);
+	freopen("CONIN$", "r", stdin);
+	string ip, port;
+	cout << "Enter ip   [127.0.0.1]: ";getline(cin, ip);
+	cout << "Enter port [8976     ]: ";getline(cin, port);
+
+	if(ip.empty()) {ip = "127.0.0.1";}
+	if(port.empty()) {port = "8976";}
+
+	game_client.initialize(ip, port, &game_updater);
 	game_client.connectServer();
 	
 
@@ -83,6 +100,21 @@ void FyMain(int argc, char **argv) {
 
 	scene.Load("gameScene01");
 	scene.SetAmbientLights(1.0f, 1.0f, 1.0f, 0.6f, 0.6f, 0.6f);
+
+	// create a 2D scene for sprite rendering which will be rendered on the top of 3D
+    FnScene scene2D;
+    sID2 = FyCreateScene(1);
+    scene2D.Object(sID2);
+    scene2D.SetSpriteWorldSize(1024, 768);         // 2D scene size in pixels
+
+	FnSprite sp;
+    spID0 = scene2D.CreateObject(SPRITE);
+    sp.Object(spID0);
+	sp.SetSize(sight_w, sight_h);
+    sp.SetImage("spiner", 0, NULL, FALSE, NULL, 2, TRUE, FILTER_LINEAR);
+	sp.SetPosition(window_w/2-sight_w/2, window_h/2-sight_h/2, 0);
+
+
 //	std::cout << "GameScene loaded" << std::endl; system("pause");
 	//load the terrain
 	terrainID = scene.CreateObject(OBJECT);
@@ -186,20 +218,19 @@ void GameAI(int skip){
    //Cameraª¬ºAªº§ó·s
 	camera.GameAIupdate(skip);
 	//camera.resetCamera();
-	game_updater.updateCharacterPush(actorID);
+	//game_updater.updateCharacterPush(actorID);
 	game_client.update();
 }
 
 void RenderIt(int skip){
 	float pos[3], fDir[3], uDir[3];
 
-
 	FnViewport vp;
 
 	//render the whole scene
 	vp.ID(viewportID);
 	vp.Render3D(cameraID, TRUE, TRUE);
-
+	vp.RenderSprites(sID2, FALSE, TRUE);  // no clear the background but clear the z buffer
 
 	//show frame rate
 	static char string[128];
@@ -218,9 +249,11 @@ void RenderIt(int skip){
 		frame = 0;
 	}
 
-	FnText text,charactorInfo;
+	FnText text,charactorInfo,char_HP,info;
 	text.ID(textID);
 	charactorInfo.ID(textCharID);
+	char_HP.ID(textHP_vID);
+	info.ID(textInfo_vID);
 
 	text.Begin(viewportID);
 	charactorInfo.Begin(viewportID);
@@ -255,9 +288,9 @@ void RenderIt(int skip){
 	//get actor's data
 	actor.GetPosition(pos);
 	actor.GetDirection(fDir, uDir);
-	sprintf_s(posS, "actor pos: %8.3f %8.3f %8.3f", pos[0], pos[1], pos[2]);
-	sprintf_s(fDirS, "actor facing: %8.3f %8.3f %8.3f", fDir[0], fDir[1], fDir[2]);
-	sprintf_s(uDirS, "actor up: %8.3f %8.3f %8.3f", uDir[0], uDir[1], uDir[2]);
+	sprintf_s(posS, "pos: %8.3f %8.3f %8.3f", pos[0], pos[1], pos[2]);
+	sprintf_s(fDirS, "facing: %8.3f %8.3f %8.3f", fDir[0], fDir[1], fDir[2]);
+	sprintf_s(uDirS, "up: %8.3f %8.3f %8.3f", uDir[0], uDir[1], uDir[2]);
     
 	text.Write(posS, 20, 125, 255, 255, 0);
     text.Write(fDirS, 20, 140, 255, 255, 0);
@@ -265,9 +298,21 @@ void RenderIt(int skip){
 
    text.End();
 
-   	sprintf_s(posS, "HP:%d", chrMgtSystem.getCharacterblood(actorID));
-	charactorInfo.Write(posS, 100, 700, 255, 255, 100);
+   	sprintf_s(posS, "HEALTH", chrMgtSystem.getCharacterblood(actorID));
+	charactorInfo.Write(posS, 50, 700, 255, 255, 100);
+	sprintf_s(posS, "ROUND", chrMgtSystem.getCharacterblood(actorID));
+	charactorInfo.Write(posS, 400, 700, 255, 255, 100);
+	sprintf_s(posS, "TIME", chrMgtSystem.getCharacterblood(actorID));
+	charactorInfo.Write(posS, 515, 700, 255, 255, 100);
 	charactorInfo.End();
+
+	sprintf_s(posS, "%d", chrMgtSystem.getCharacterblood(actorID));
+	char_HP.Write(posS, 110, 672, 255, 255, 255);
+	sprintf_s(posS, "%d", chrMgtSystem.getCharacterblood(actorID));
+	info.Write(posS, 460, 694 ,255, 255, 255);
+	sprintf_s(posS, "%d", chrMgtSystem.getCharacterblood(actorID));
+	info.Write(posS, 560, 694, 255, 255, 255);
+	info.End();
    FySwapBuffers();
 }
 

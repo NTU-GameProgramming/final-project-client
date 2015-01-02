@@ -5,30 +5,37 @@
 #include <map>
 #include "json_socket.h"
 
-#include 
+#include "enum/motion_state.h"
 
 
 using namespace std;
 
 class GmUpdater {
 public:
-	GmUpdater() {};
+	GmUpdater() {this->if_initialized = false;};
 	~GmUpdater() {};
 	
 	void initialize(JsonSocket *json_socket) {
 		this->json_socket = json_socket;
+		this->if_initialized = true;
 	};
 
-	virtual void updateCharacterPush(CHARACTERid id) = 0;
+	virtual void updateCharacterPushPosition(CHARACTERid id) = 0;
 	virtual void updateCharacterPullPosition(int game_id, float *pos) = 0;
+
+	//virtual void updateCharacterPushDirection(CHARACTERid id) = 0;
+	//virtual void updateCharacterPullDirection(int game_id, float *pos) = 0;
+
 	virtual void updateObjectPush(int game_id) = 0;
 	virtual void updateObjectPull(int game_id) = 0;
 
 	virtual void updateCharacterAttackPush(CHARACTERid id) = 0;
 	virtual void updateCharacterAttackPull(int game_id) = 0;
 
-	virtual void updateCharacterMotionState(CHARACTERid id) = 0;
-	virtual void updateCharacterMotionState(int game_id) = 0;
+	virtual void updateCharacterMotionStatePush(CHARACTERid id, MotionState ms) = 0;
+	virtual void updateCharacterMotionStatePull(int game_id, MotionState ms) = 0;
+
+	virtual
 
 	void GmUpdater::registerCharacter(int game_id, CHARACTERid actor_id) {
 		cout << game_id << " <---> " << actor_id << endl;
@@ -44,4 +51,6 @@ protected:
 
 	map<OBJECTid, int> obj2game;
 	map<int, OBJECTid> game2obj;
+
+	bool if_initialized;
 };

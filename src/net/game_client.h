@@ -7,7 +7,6 @@
 #include "game_tree.h"
 #include "game_updater.h"
 
-
 enum CONNECTION_STATUS {
 	UNINITIALIZED,
 	INITIALIZED,

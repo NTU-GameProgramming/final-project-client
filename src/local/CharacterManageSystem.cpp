@@ -1,8 +1,9 @@
 #include "CharacterManageSystem.h"
 
 
-CharacterManageSystem::CharacterManageSystem(GmUpdater *game_updater) :m_localPlayerId(NULL) {
+CharacterManageSystem::CharacterManageSystem(GmUpdaterReal *game_updater) :m_localPlayerId(NULL) {
 	this->game_updater = game_updater;
+	game_updater->initialize(&(this->m_mapCharacterId2NewState));
 }
 
 
@@ -31,22 +32,28 @@ bool CharacterManageSystem::addCharacter(Character &character, bool isLocalPlaye
 void CharacterManageSystem::updateCharacterInputs(){
 
 	MotionState old_state = m_mapCharacterId2NewState[m_localPlayerId]; // old state
+	bool move = false, attack = false;
+
 	//for local player
    	int newState = 0;
 	if(FyCheckHotKeyStatus(FY_UP)){
 		newState = newState|MOVE_FORWARD;
+		move = true;
 		//std::cout<<"up key\n";
 	}												  
 	if(FyCheckHotKeyStatus(FY_DOWN)){
 		newState = newState|MOVE_BACKWARD;
+		move = true;
 		//std::cout<<"down key\n";
 	}
 	if(FyCheckHotKeyStatus(FY_LEFT)){
 		newState = newState|MOVE_LEFT;
+		move = true;
 		//std::cout<<"left key\n";
 	}
 	if(FyCheckHotKeyStatus(FY_RIGHT)){
 		newState = newState|MOVE_RIGHT;
+		move = true;
 		//std::cout<<"right key\n";
 	}
 	if(FyCheckHotKeyStatus(FY_F)){
@@ -58,9 +65,12 @@ void CharacterManageSystem::updateCharacterInputs(){
 
 	// If state is changed, send message over net to inform others.
 	if(old_state != static_cast<MotionState>(newState)) {
-		//this->game_updater->
+		this->game_updater->updateCharacterMotionStatePush(m_localPlayerId, static_cast<MotionState>(newState));
 	}
 
+	if(move) {
+		this->game_updater->updateCharacterPushPosition(m_localPlayerId);
+	}
 
 	//update other charcter's input state
 	//m_mapCharacterId2NewState[m_mapStrName2CharacterId["Donzo2"]] = MotionState::IDLE;
@@ -88,6 +98,7 @@ void CharacterManageSystem::update(int skip){
 			if(chrIter->second == MotionState::ATTACK){
 				//trigger fight system
 				m_FightSystem.judgeAttack(chrIter->first);
+				this->game_updater->updateCharacterAttackPush(this->m_localPlayerId);
 			}
 		}
 	}
